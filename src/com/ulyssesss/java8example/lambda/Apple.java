@@ -1,8 +1,5 @@
-package com.ulyssesss.java8.examples.lambda;
+package com.ulyssesss.java8example.lambda;
 
-/**
- * Created by jiangyue on 2017/7/26.
- */
 public class Apple {
 
     private int weight;
@@ -13,12 +10,8 @@ public class Apple {
         this.color = color;
     }
 
-    public boolean isGreen() {
-        return "green".equals(color);
-    }
-
-    public boolean isHeavy() {
-        return weight > 80;
+    public boolean isWeight() {
+        return weight > 150;
     }
 
     @Override
