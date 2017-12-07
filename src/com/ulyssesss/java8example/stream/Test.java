@@ -3,10 +3,8 @@ package com.ulyssesss.java8example.stream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -60,13 +58,44 @@ public class Test {
                                 .filter(k -> k[2] % 1 == 0)
                 );
 
-        try (Stream<String> lines = Files.lines(Paths.get("test.txt"), Charset.defaultCharset())){
+        try (Stream<String> lines = Files.lines(Paths.get("test.txt"), Charset.defaultCharset())) {
             long uniqueWords = lines.flatMap(line -> Arrays.stream(line.split(" "))).distinct().count();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         Stream.iterate(0, n -> n + 2).limit(10).forEach(System.out::println);
         Stream.iterate(new int[]{0, 1}, t -> new int[]{t[1], t[0] + t[1]})
                 .limit(20).map(t -> t[0]).forEach(System.out::println);
         Stream.generate(Math::random).limit(10).forEach(System.out::println);
+
+        long howManyDishes = menu.stream().collect(Collectors.counting());
+        Optional<Dish> mostCalorieDish1 = menu.stream().collect(Collectors.maxBy(Comparator.comparingInt(Dish::getCalories)));
+        Optional<Dish> mostCalorieDish2 = menu.stream().max(Comparator.comparingInt(Dish::getCalories));
+
+        double avgCalories = menu.stream().collect(Collectors.averagingInt(Dish::getCalories));
+        String dishes = menu.stream().map(Dish::getName).collect(Collectors.joining(", "));
+
+        int totalCalories = menu.stream().collect(Collectors.reducing(0, Dish::getCalories, (i, j) -> i + j));
+
+        Map<Dish.Type, List<Dish>> dishesByType = menu.stream().collect(Collectors.groupingBy(Dish::getType));
+        Map<String, List<Dish>> dishesByCal = menu.stream().collect(Collectors.groupingBy(
+                dish -> dish.getCalories() > 700 ? "fat" : dish.getCalories() < 400 ? "normal" : "diet"));
+
+        Map<Dish.Type, Map<String, List<Dish>>> dishesByTypeCal = menu.stream().collect(
+                Collectors.groupingBy(Dish::getType, Collectors.groupingBy(dish -> dish.getCalories() > 700
+                        ? "fat" : dish.getCalories() < 400 ? "normal" : "diet")));
+        Map<Dish.Type, Long> typesCount = menu.stream().collect(Collectors.groupingBy(Dish::getType, Collectors.counting()));
+
+        Map<Dish.Type, Dish> mostCalByType = menu.stream().collect(Collectors.groupingBy(Dish::getType
+                , Collectors.collectingAndThen(Collectors.maxBy(Comparator.comparing(Dish::getCalories)), Optional::get)));
+
+        Map<Dish.Type, Set<String>> calsByType = menu.stream().collect(Collectors.groupingBy(Dish::getType
+                , Collectors.mapping(dish -> dish.getCalories() > 700
+                        ? "fat" : dish.getCalories() < 400 ? "normal" : "diet", Collectors.toSet())));
+
+        Collector<Object, ?, HashSet<Object>> toList = Collectors.toCollection(HashSet::new);
+
+        Map<Boolean, Map<Dish.Type, List<Dish>>> vegetarianDishesByType = menu.stream().collect(
+                Collectors.partitioningBy(Dish::isVegetarian, Collectors.groupingBy(Dish::getType)));
     }
 }
